@@ -47,6 +47,9 @@ async function mainMenu() {
     case "Update Employee Role":
       await updateEmployeeRole();
       break;
+    case "View Total Budget by Department":
+        await viewTotalBudgetByDept();
+        break;
     case "Exit":
       console.log("Goodbye!");
       return process.exit();
@@ -243,7 +246,20 @@ async function updateEmployeeRole(){
     }
 }
 
+async function viewTotalBudgetByDept(){
+    try {
+        const budgetQuery = `SELECT department.id, department.name AS department,
+        SUM(role.salary) AS total_salary FROM department
+        JOIN role ON department.id = role.department_id
+        JOIN employee ON role.id = employee.role_id
+        GROUP BY department.id, department.name;`;
 
+        const result: QueryResult = await pool.query(budgetQuery);
+        console.table(result.rows);
+    } catch (err) {
+        console.error('Error Viewing the Total Budget by Department:', err);  
+    }    
+}
 
 connectToDb().then(() => {
     mainMenu();
