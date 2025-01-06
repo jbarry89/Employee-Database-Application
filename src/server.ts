@@ -3,8 +3,9 @@ import "console.table";
 import inquirer from "inquirer";
 import { pool, connectToDb } from "./connection.js";
 
-await connectToDb();
+await connectToDb(); // Calling connectToDb() function which is in the connection.js file
 
+// Function that displays a list of options for the user to select
 async function mainMenu() {
   const { action }: {action: string} = await inquirer.prompt([
     {
@@ -57,6 +58,7 @@ async function mainMenu() {
   mainMenu();
 }
 
+// Function to view all the departments and their unique id
 async function viewAllDepartments() {
     try {
         const response: QueryResult = await pool.query("SELECT * FROM department");
@@ -66,6 +68,7 @@ async function viewAllDepartments() {
     }
 }
 
+// Function to view all Roles data: id, job title, salary, and department
 async function viewAllRoles() {
     const roleResults = `SELECT role.id, role.title, role.salary, department.name AS department FROM role
     JOIN department ON role.department_id = department.id`;
@@ -77,6 +80,7 @@ async function viewAllRoles() {
     }
 }
 
+// Function to view all employees data: id, first_name, last_name, title, department, salary, and manager
 async function viewAllEmployees() {
     try {
         const employeeResults = `SELECT e1.id, e1.first_name, e1.last_name, role.title, department.name AS department, role.salary,
@@ -92,6 +96,7 @@ async function viewAllEmployees() {
     }
 }
 
+// Function to add a new Department to the database
 async function addDepartment(){
     const {name}: {name: string} = await inquirer.prompt([
         {
@@ -102,6 +107,7 @@ async function addDepartment(){
     ]);
 
     try {
+        // Inserting new Department name in the database
         await pool.query('INSERT INTO department (name) VALUES ($1)', [name]);
         console.log(`${name} Department was added to the database!`);
     } catch (err) {
@@ -109,6 +115,7 @@ async function addDepartment(){
     }
 }
 
+// Function to add a new role in the database
 async function addRole(){
     // Get the list of departments from the database
     const departmentResults: QueryResult = await pool.query('SELECT id, name FROM department');
@@ -117,6 +124,7 @@ async function addRole(){
         value: department.id,
     }));
 
+    // Prompt Questions/Selections for User to input to add new role in database
     const {title , salary, department_id}: {
         title: string; 
         salary: number; 
@@ -130,6 +138,7 @@ async function addRole(){
             type: 'input',
             name: 'salary',
             message: 'Enter the salary for the new role: ',
+            // Checking that user inputs a valid number value for Salary
             validate: (value) => {
                 const valid = !isNaN(parseFloat(value)) && isFinite(Number(value));
                 if (valid){
@@ -148,6 +157,7 @@ async function addRole(){
     ]);
 
     try {
+        // Inserting new role and salary in the database
         await pool.query('INSERT INTO role (title, salary, department_id) VALUES ($1, $2, $3)', [title, salary, department_id]);
         console.log(`${title} role was added to the database!`);
     } catch (err) {
@@ -155,6 +165,7 @@ async function addRole(){
     }
 }
 
+// Function to add a new employee to the database
 async function addEmployee(){
     // Get the list of roles from the database
     const rolesResults: QueryResult = await pool.query('SELECT id, title FROM role');
@@ -173,6 +184,7 @@ async function addEmployee(){
     // Add option 'None' to the top of the list. If 'None' is selected, then value will be NULL.
     managers.unshift({name: 'None', value: null});
 
+    // Prompt Questions/Selections for User to input to add new employee
     const {first_name, last_name, role_id, manager_id}: {first_name: string; last_name: string; role_id: number; manager_id: number} = await inquirer.prompt([
         {
             type: 'input',
@@ -199,6 +211,7 @@ async function addEmployee(){
     ]);
 
     try {
+        // Inserting new employee in the database
         await pool.query('INSERT INTO employee (first_name, last_name, role_id, manager_id) VALUES ($1, $2, $3, $4)', [first_name, last_name, role_id, manager_id]);
         console.log(`New employee ${first_name} ${last_name} was added to the database!`);
     } catch (err) {
@@ -206,6 +219,7 @@ async function addEmployee(){
     }
 }
 
+// Function to Update Existing Employee Role in the Database
 async function updateEmployeeRole(){
     // Get the list of employees from the database
     const employeesResults: QueryResult = await pool.query('SELECT id, first_name, last_name FROM employee');
@@ -239,6 +253,7 @@ async function updateEmployeeRole(){
     ]);
 
     try {
+        // Updating new role that was assigned to the selected employee
         await pool.query('UPDATE employee SET role_id = $1 WHERE id = $2', [newRole_id, employee_id]);
         console.log('Updated Employee Role');
     } catch (err) {
@@ -246,6 +261,7 @@ async function updateEmployeeRole(){
     }
 }
 
+// Function to calculate the sum of All Salaries per Department
 async function viewTotalBudgetByDept(){
     try {
         const budgetQuery = `SELECT department.id, department.name AS department,
@@ -262,5 +278,6 @@ async function viewTotalBudgetByDept(){
 }
 
 connectToDb().then(() => {
-    mainMenu();
+    // Call the mainMenu function to display the menu
+    mainMenu(); 
 });
